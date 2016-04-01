@@ -1,0 +1,458 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <math.h>
+
+/**********************		Compare function for qsort   	****************************/
+int compare_function(const void* a, const void* b)
+{
+	unsigned char *x = (unsigned char *)a;				
+	unsigned char *y = (unsigned char *)b;
+ 	return *x - *y;
+
+}
+/* 	Compare function for sorting of frequencies 	*/
+int compare_function_int(const void *a, const void* b)
+{
+	int *x = (int *)a;
+	int *y = (int *)b;
+	return *x - *y;
+
+}
+/* Tree nodes for huffman tree*/
+struct node
+{
+	unsigned char val;
+	int freq;
+	struct node* left;
+	struct node* right;
+	unsigned char code;
+};
+
+typedef struct node Node;
+
+/* 	sort function for tree nodes 	*/
+bool sortCompare(struct node A, struct node B){	return A.freq>B.freq;}
+
+
+Node* getleaf(Node *root, unsigned char sym)
+{
+	if(root!=NULL)
+	{	
+		if(root->val == sym)
+			return root;
+		else
+		{
+			getleaf(root->left,sym);
+			getleaf(root->right,sym);
+		}
+	}
+	else
+		return NULL;
+}
+
+Node* getleaf_logic2(Node *root, unsigned char symbol)
+{
+	Node *temp;
+	temp = (Node*)malloc(sizeof(Node));
+	if(root==NULL)
+		return NULL;
+	else
+	{	
+		if(root->val == symbol)
+			return root;
+		else
+		{
+			temp = getleaf_logic2(root->left, symbol);
+			if(temp==NULL)
+				temp = getleaf_logic2(root->right, symbol);
+			return temp;
+		}
+	}
+}
+
+bool getCode(unsigned char symbol,int* size, int* &pattern, Node *root)
+{
+	bool code;
+	if(root==NULL)
+		return 0;
+	else
+	{
+		if(root->val == symbol)
+			return 1;
+		else
+		{
+			(*size)++;
+			pattern = (int*)realloc(pattern, (*size)*sizeof(int));
+			pattern[*size-1] =0;
+			code = getCode(symbol,size,pattern,root->left);
+			if(!code)
+			{	
+				pattern[*size-1] = 1;
+				code = getCode(symbol,size,pattern,root->right);			
+			}
+			if(!code)
+				(*size)--;
+			return code;
+
+		}		
+	}
+				
+
+}
+
+
+void preorderPrint( Node *root ) 
+{
+	if(root!=NULL)
+	{
+		std::cout<< "Root Val: " << root->val << "\t" << "Root Frequency: " << root->freq << std::endl;
+		preorderPrint(root->left);
+		preorderPrint(root->right);
+	}
+} 
+
+
+int NodeCount(Node *root)
+{
+	if(root == NULL)
+		return 0;
+	else
+	{
+//		std::cout<< "Function root check" << std::endl;	
+		int count=1;
+		count += NodeCount(root->left);
+//		std::cout << "Count left : " << count << std::endl;
+		count += NodeCount(root->right);	
+//		std::cout << "Count left + right : " << count << std::endl;
+		return count;				
+
+	}
+}
+
+
+
+int main( int argc, char *argv[])
+{
+
+
+FILE 				*fpt_in, *fpt_out, *fpt_inter;
+int 				i,j,k;
+unsigned char 			*data_in, *data_stream;
+int 				dictionary_count,symbolCount;
+unsigned char			*dictionary;
+int				*frequency, *frequency_sorted;
+unsigned char 			byte;
+int				fileSize;
+int 				treeCount=0;
+
+std::vector<Node>dict;
+dict.clear();
+
+if(argc!=3)
+{
+	printf("Invalid Usage: huffmancodec [input_filename] [output_filename]\n");
+	exit(0);
+}
+
+
+if(fopen(argv[1],"rb")==NULL)
+{
+	printf("Invalid input filename: %s\n", argv[1]);
+	exit(0);
+}
+
+fpt_in = fopen(argv[1],"rb");
+fileSize = 0;
+while(fread(&byte,1,1,fpt_in)!=0)
+	fileSize++;
+
+printf("File size is: %d\n",fileSize);
+fseek(fpt_in, 0, SEEK_SET);
+
+
+/******************************************file to be compressed opened*****************************************/
+
+
+data_in = (unsigned char*)malloc(sizeof(unsigned char)*fileSize);
+j = fread(data_in, sizeof(unsigned char), fileSize, fpt_in);
+fclose(fpt_in);
+
+fpt_in = fopen(argv[1],"rb");
+data_stream = (unsigned char*)malloc(sizeof(unsigned char)*fileSize);
+j = fread(data_stream, sizeof(unsigned char), fileSize, fpt_in);
+
+
+fpt_out = fopen(argv[2],"wb");
+
+qsort(data_in,fileSize,sizeof(unsigned char),compare_function);
+
+
+/**************************		Dictionary initialization		********************************/
+
+dictionary_count = 1;
+
+for(i=0; i<fileSize-1; i++)
+	if(data_in[i] != data_in[i+1])
+	{
+		dictionary_count++;
+		if(i==fileSize-2)
+			dictionary_count++;
+	}
+
+
+printf("Number of symbols in the dictionary: %d\n", dictionary_count);
+
+dictionary = (unsigned char*)malloc(sizeof(unsigned char)*dictionary_count);
+frequency = (int*)malloc(sizeof(int)*dictionary_count);
+frequency_sorted = (int*)malloc(sizeof(int)*dictionary_count);
+symbolCount = 1;
+k=0;
+
+/************* 		Assigning frequency count for each data element 	***********************/
+for(i=0;i<fileSize-1;i++)
+{
+	if(data_in[i]==data_in[i+1])
+	{
+		symbolCount++;
+		if(i == fileSize-2)
+		{
+			dictionary[k] = data_in[i+1];
+			frequency[k] = symbolCount;
+			k++;
+		}
+	}		
+	else
+	{
+		if(i == fileSize-2)
+		{
+			dictionary[k] = data_in[i];
+			frequency[k] = symbolCount;
+			k++;
+			symbolCount = 1;
+			dictionary[k] = data_in[i+1];
+			frequency[k] = 1;
+			k++;
+		}
+		else
+		{	
+			dictionary[k] = data_in[i];
+			frequency[k] = symbolCount;
+			k++;
+			symbolCount = 1;
+		}
+	}
+}
+free(data_in);
+Node temp;
+	
+/* Creating a vector of dictionary entries to be able to form a tree */
+for(i=0;i<k;i++)
+{
+//	memset(&temp,0,sizeof(Node));
+	temp.freq = frequency[i];
+	temp.val = dictionary[i];
+	temp.left = NULL;
+	temp.right = NULL;
+	dict.push_back(temp);	
+	printf("frequency sorted [%d] = %d\n",i, temp.freq);
+}
+
+std::cout << "Dictionary size: " << dict.size() << std::endl;
+
+sort(dict.begin(),dict.end(), sortCompare);
+
+for(i=0; i< dict.size(); i++)
+	std::cout<< "Dictionary Element: " << dict[i].val <<"\t"<< dict[i].freq << std::endl;
+
+
+Node *minimum, *lastmin;
+
+//minimum = (Node*)malloc(1*sizeof(Node));
+int iter = 1;
+//lastmin = (Node*)malloc(1*sizeof(Node));
+/* creating dictionary tree */
+while(dict.size()>1)
+{
+	
+	minimum = (Node*)malloc(1*sizeof(Node));
+	lastmin = (Node*)malloc(1*sizeof(Node));
+//	memset(&temp,0,sizeof(Node));
+	std::cout << "**********************iteration*********************** :" << iter << std::endl;
+	sort(dict.begin(), dict.end(), sortCompare);
+	std::cout<< "Sorted Dictionary"<<std::endl<<std::endl;
+	for(i=0;i<dict.size();i++)
+	{
+		std::cout << "Dictionary Entry: "<< dict[i].val << "\t" << dict[i].freq << "\t"; 
+		if(dict[i].left!=NULL)
+			std::cout<< (dict[i].left)->freq<<"\t";
+		if(dict[i].right!=NULL)
+			std::cout<< (dict[i].right)->freq;
+		std::cout<<std::endl;
+	}
+	*minimum = dict[dict.size()-1];
+	*lastmin = dict[dict.size()-2];
+	std::cout << "frequencies popped : Min Freq"<< minimum->freq <<"\t"<< lastmin->freq<< std::endl;
+	dict.pop_back();
+	dict.pop_back();
+//	for(i=0;i<dict.size();i++)
+//		std::cout << "Dictionary Entry: "<< dict[i].val << "\t" << dict[i].freq<< std::endl;
+	temp.val = '\0';
+	temp.freq = (minimum->freq) + (lastmin->freq);			//creating a parent node with frequency = sum of lowest frequencies
+	temp.left = minimum;						//assigning left child
+	temp.right = lastmin;						//assigning right chld
+	dict.push_back(temp);						//pushing tree node to dictionary
+	for(i=0;i<dict.size();i++)
+	{
+		std::cout << "Dictionary Entry: "<< dict[i].val << "\t" << dict[i].freq << "\t"; 
+		if(dict[i].left!=NULL)
+			std::cout<< (dict[i].left)->freq<<"\t";
+		if(dict[i].right!=NULL)
+			std::cout<< (dict[i].right)->freq;
+		std::cout<<std::endl;
+	}
+	std::cout<< "New dictionary size: "<< dict.size() << std::endl;
+	iter++;	
+//	free(minimum);
+//	free(lastmin);
+}
+
+std::cout << "New dictionary root frequency= "<< dict[0].freq << "\t" <<std::endl;
+
+Node *root = (Node*)malloc(1*sizeof(Node));
+*root = dict[0];							//assigning root node of dictionary
+Node *next, n2n;
+//next = *(root->left);
+//n2n = *(next.left);
+std::cout << "Dictionary root element: "<< root->freq << std::endl;
+std::cout << "Root children frequencies: "<< ((root->left)->left)->freq <<"\t"<< ((root->left)->right)->freq << std::endl;
+
+treeCount = NodeCount(root);
+preorderPrint(root);
+
+std::cout << "Node Count Executed" << std::endl;
+std::cout<< "TreeCount = " << treeCount << std::endl;
+
+/*unsigned char symbol = 'T';
+//next = (Node*)malloc(1*sizeof(Node));
+//next = root;
+next = getleaf_logic2(root,symbol);
+//if(symbol == next->val)
+std::cout << "symbol detected : " << next->val <<"\t"<< next->freq << std::endl;
+bool code_Detect;
+int *size;
+size = (int*)malloc(sizeof(int));
+*size = 0;
+int *pattern=NULL;
+code_Detect = getCode(symbol,size,pattern,root);
+std::cout << "Symbol Size:" << *size <<std::endl;
+std::cout << "Pattern: ";
+for(i=0;i<*size;i++)
+	std::cout<< pattern[i] <<"\t";
+std::cout << std::endl;
+*/
+bool codeDetect;
+int *size;
+int **pattern;
+size = (int*)malloc(dictionary_count*sizeof(int));
+pattern = (int**)malloc(dictionary_count*sizeof(int*));
+int total_size = 0;
+for(i=0; i<dictionary_count; i++)
+{
+	size[i] = 0;
+	pattern[i] = NULL;
+	codeDetect = getCode(dictionary[i], &size[i], pattern[i], root);	
+	std::cout << "Code size of "<< dictionary[i] << ": " << size[i] << "Code: ";
+	for(j=0;j<size[i];j++)
+		std::cout << pattern[i][j] << "\t";
+	std::cout << std::endl;
+	total_size += size[i]*frequency[i];
+}
+
+total_size += 8-total_size%8;
+std::cout << "Total Size of output bit array: "<< total_size << std::endl;
+int *outstream = (int*)malloc(total_size*sizeof(int));
+int stream_index = 0;
+int l;
+for(i=0;i<fileSize;i++)
+{
+	for(j=0;j<dictionary_count;j++)
+	{
+		if(data_stream[i] == dictionary[j])
+		{
+			for(l=0;l<size[j];l++)
+				outstream[stream_index+l] = pattern[j][l];
+			stream_index += size[j];						
+		}
+	}		
+}
+
+/* generating bit pattern for the entire file in terms of integer entries */
+/*for(i=0;i<total_size;i++)
+	std::cout << outstream[i] << "\t" ;
+std::cout<<std::endl;
+*/
+fwrite(&dictionary_count,sizeof(int),1,fpt_out);
+fwrite(dictionary,sizeof(unsigned char), dictionary_count,fpt_out);
+fwrite(frequency, sizeof(int),dictionary_count, fpt_out);
+
+unsigned char outbyte;
+std::cout<< "output by byte" <<std::endl;
+for(i=0;i<total_size/8;i++)
+{
+	outbyte = 0;
+	for(j=0;j<8;j++)
+		outbyte += outstream[i*8+j]*pow(2,7-i);
+//	std::cout << outbyte << std::endl;
+	fwrite(&outbyte,sizeof(unsigned char),1,fpt_out);
+}
+
+
+
+/*qsort(frequency_sorted,k,sizeof(int), compare_function_int);
+
+for(i=0; i<k; i++)
+	printf("frequency count: %d\n", frequency_sorted[i]);
+
+
+int total_freq = 0;
+
+for(i=0;i<k;i++)
+{
+	printf("Dictionary entry: %d \t Frequency : %d\n",dictionary[i], frequency[i]);
+	total_freq += frequency[i];
+}
+
+
+for(i=0; i<k; i++)
+	for(j=0;j<frequency[i];j++)
+		fwrite(&dictionary[i],sizeof(unsigned char),1,fpt_out);
+
+printf("The number of entries: %d\nTotal count: %d\n",k, total_freq);
+fpt_inter = fopen("intermediate.txt","wb");
+i = fwrite(data_in, sizeof(unsigned char), fileSize, fpt_inter);
+*/
+
+std::cout<< "output format" << std::endl;
+
+
+fclose(fpt_out);
+fclose(fpt_in);
+free(dictionary);
+free(frequency);
+free(outstream);
+free(data_stream);
+free(root);
+free(pattern);
+free(size);
+free(minimum);
+free(lastmin);
+return 0;
+
+}
+
+
+

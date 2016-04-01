@@ -1,0 +1,129 @@
+/*
+Name: Varun Praveen
+CUID: C15618128
+Email: pravee2@clemson.edu
+Course: ECE-6680
+Description:This code implements a marker based RLE compression
+*/
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define READSIZE 50						        //restrict this to 100-255
+#define MAXCOUNT 255
+#define MINCOUNT 1
+
+int main(int argc, char *argv[])
+{
+
+
+
+FILE 			*fpt_in,*fpt_out;
+int 			i,j;
+int 			count, iter;
+int 			fileSize;
+unsigned char 		runcount;					//count value to be output to the file
+unsigned char		byte_A, byte_B;					//the two bytes read from the file
+unsigned char		byte,data, data_pair[2];
+unsigned char 		*buffer;
+unsigned char 		unequal_count, output_pair[2];	
+unsigned char 		flag[2] = {0,255};
+unsigned char 		BUFFERSIZE = 0;
+int 			flag_rle;
+
+if(argc!=3)
+{
+	printf("Invalid Usage!\nUsage: rledecomp [input filename] [output filename]\n");
+	exit(0);
+}
+
+
+/**********************************COMPRESSION ALGORITHM**************************************/
+fpt_in = fopen(argv[1], "rb");		
+
+if(fpt_in == NULL)
+{
+	printf("Invalid file name for input file: %s \n", argv[1]);
+	exit(0);
+}
+
+
+fileSize = 0;
+// computing file size
+while(j = fread(&byte,1, 1,fpt_in)!=0)
+{ 
+	fileSize++;
+}
+
+fseek(fpt_in,0, SEEK_SET );
+printf("File size is : %d\n",fileSize);
+//READSIZE = fileSize;
+//printf("Read size is : %d\n",READSIZE);
+fileSize = fileSize - 1;
+fpt_out = fopen(argv[2],"wb");
+/*
+for(i=0;i<READSIZE;i++)
+	printf("calloc intiliazed buffer[%d] = [%d]",i,buffer[i]);
+*/
+
+// reading data in to a buffer
+j=0;
+iter = 1;
+do
+{
+	printf("*****************ITERATION NO. %d ************************\n", iter);
+	j+= fread(data_pair, 1, 2, fpt_in);
+	printf("J at the beginning of the do-while: %d\n", j);
+	if(data_pair[0] == 0 && data_pair[1] == 255)
+	{
+		do
+		{
+			j+=fread(&byte_A,1,1,fpt_in);	
+			flag_rle = 1;
+			if(byte_A != 0)
+				fwrite(&byte_A,1,1,fpt_out);
+			else
+			{
+				fread(&byte_B,1,1,fpt_in);
+				if(byte_B == 255)
+				{
+					flag_rle = 0;
+					j=j+1;
+				}
+				else
+				{
+					fseek(fpt_in,-1,SEEK_CUR);
+				}	
+			}
+			
+		}while(flag_rle==1);		
+	}
+	else
+	{
+		count = data_pair[0];
+		data = data_pair[1];
+		for(i=0;i<count;i++)
+			fwrite(&data,1,1,fpt_out);		
+
+	}
+	printf("The value of j : %d\n", j);
+	fileSize -= j;
+	j=0;
+	printf("File size left: %d\n", fileSize);
+	free(buffer);
+	iter++;
+
+	
+}while(fileSize>0);
+
+
+
+fclose(fpt_in);
+fclose(fpt_out);
+	
+return 0;	
+	
+	
+}

@@ -1,0 +1,9 @@
+Byte value[1] read is 84
+Byte value[2] read is 72
+Byte value[3] read is 73
+Byte value[4] read is 83
+Byte value[5] read is 10
+Byte value[6] read is 258
+Byte value[7] read is 32
+Byte value[8] read is 258
+Byte value[9] read is 10
