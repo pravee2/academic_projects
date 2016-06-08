@@ -96,17 +96,17 @@ bool getCode(unsigned char symbol,int* size, int* &pattern, Node *root)
 		else
 		{
 			(*size)++;
-			pattern = (int*)realloc(pattern, (*size)*sizeof(int));			//reallocating size of the pattern depending on node location
-			pattern[*size-1] =0;							//setting current but to 0 for left traversal
-			code = getCode(symbol,size,pattern,root->left);				//traversing through left branch
+			pattern = (int*)realloc(pattern, (*size)*sizeof(int));							//reallocating size of the pattern depending on node location
+			pattern[*size-1] =0;															//setting current but to 0 for left traversal
+			code = getCode(symbol,size,pattern,root->left);									//traversing through left branch
 			if(!code)
 			{	
-				pattern[*size-1] = 1;						//if left traversal fails updated final bit to 1
-				code = getCode(symbol,size,pattern,root->right);		//check right branch		
+				pattern[*size-1] = 1;														//if left traversal fails updated final bit to 1
+				code = getCode(symbol,size,pattern,root->right);							//check right branch		
 			}
 			if(!code)
-				(*size)--;							//if code has not deen detected at all reduce pattern size by 1
-			return code;								//return true if pattern is found else return FALSE
+				(*size)--;																	//if code has not deen detected at all reduce pattern size by 1
+			return code;																	//return true if pattern is found else return FALSE
 
 		}		
 	}
@@ -195,13 +195,13 @@ readcount = j;
 dictionary = (unsigned char*)malloc(dictionary_count*sizeof(unsigned char));
 frequency = (int*)malloc(dictionary_count*sizeof(unsigned int));
 
-j = fread(dictionary, sizeof(unsigned char), dictionary_count, fpt_in);				//reading dictionary elements values from header
-k = fread(frequency, sizeof(int), dictionary_count, fpt_in);					//reading corresponding frequencies from header
+j = fread(dictionary, sizeof(unsigned char), dictionary_count, fpt_in);								//reading dictionary elements values from header
+k = fread(frequency, sizeof(int), dictionary_count, fpt_in);										//reading corresponding frequencies from header
 
 /* Setting total count of data read till this point as 
 readcount = 1 * sizeof(unsigned char) + count * sizeof(unsigned char) + count * sizeof(int) */
 
-readcount = i + j + k * 4;									//computing remaining size after header for variable bit code
+readcount = i + j + k * 4;																			//computing remaining size after header for variable bit code
 //std::cout << "Read count:" << readcount << std::endl;
 int streamcount = fileSize - readcount;
 //std::cout << "Stream count : "<< streamcount << std::endl;
@@ -215,7 +215,7 @@ for(i=0;i<streamcount;i++)
 	c = data_in[i];
 	for(j=0;j<8;j++)
 	{
-		data_stream[i*8+(7-j)] = c%2;							//converting byte pattern to consecutive binary values for easy decompression
+		data_stream[i*8+(7-j)] = c%2;																//converting byte pattern to consecutive binary values for easy decompression
 		c = c/2;
 	}	
 }
@@ -223,7 +223,6 @@ for(i=0;i<streamcount;i++)
 /* printing out equivalent binary data stream */
 /*for(i=0;i<streamcount*8;i++)
 	std::cout << data_stream[i] << "\t";
-
 std::cout<<std::endl;
 */
 
@@ -270,10 +269,10 @@ while(dict.size()>1)
 	dict.pop_back();
 	dict.pop_back();
 	temp.val = '\0';
-	temp.freq = (minimum->freq) + (lastmin->freq);			//creating a parent node with frequency = sum of lowest frequencies
-	temp.left = minimum;						//assigning left child
-	temp.right = lastmin;						//assigning right chld
-	dict.push_back(temp);						//pushing tree node to dictionary
+	temp.freq = (minimum->freq) + (lastmin->freq);												//creating a parent node with frequency = sum of lowest frequencies
+	temp.left = minimum;																		//assigning left child
+	temp.right = lastmin;																		//assigning right chld
+	dict.push_back(temp);																		//pushing tree node to dictionary
 	iter++;	
 //	free(minimum);
 //	free(lastmin);
@@ -281,7 +280,7 @@ while(dict.size()>1)
 
 
 Node *root = (Node*)malloc(1*sizeof(Node));
-*root = dict[0];							//assigning root node of dictionary
+*root = dict[0];																				//assigning root node of dictionary
 Node *next, n2n;
 //next = *(root->left);
 //n2n = *(next.left);
@@ -301,7 +300,7 @@ for(i=0; i<dictionary_count; i++)
 	size[i] = 0;
 	pattern[i] = NULL;
 	codeDetect = getCode(dictionary[i], &size[i], pattern[i], root);	
-	total_size += size[i]*frequency[i];				//gives the total size of the number of bits in file and number of padded bits to ignore
+	total_size += size[i]*frequency[i];															//gives the total size of the number of bits in file and number of padded bits to ignore
 }
 
 
@@ -317,20 +316,20 @@ curr = root;
 i=0;
 for(;i<total_size+1;)
 {
-	if(curr->left == NULL&& curr->right == NULL)			//implying that the traversal has reached a leaf node where the values are stored and there are no more child nodes
+	if(curr->left == NULL&& curr->right == NULL)												//implying that the traversal has reached a leaf node where the values are stored and there are no more child nodes
 	{	
 //		std::cout<<curr->val<<std::endl;
 		outcode = curr->val;
-		fwrite(&outcode,sizeof(unsigned char),1,fpt_out);	//fwrite code value to file
+		fwrite(&outcode,sizeof(unsigned char),1,fpt_out);										//fwrite code value to file
 		curr = head;
 	}
 	else
 	{
-		curr_bit = data_stream[i];				//else check the data stream	
+		curr_bit = data_stream[i];																//else check the data stream	
 		if(curr_bit == 0)					
-			curr = (curr->left);				//if current bit is 0 traverse left branch
+			curr = (curr->left);																//if current bit is 0 traverse left branch
 		else
-			curr = (curr->right);				//if current bit is 1 traverse right branch
+			curr = (curr->right);																//if current bit is 1 traverse right branch
 		i++;
 //		total_size = total_size - i;
 	}
@@ -354,6 +353,3 @@ free(lastmin);
 return 0;
 
 }
-
-
-
