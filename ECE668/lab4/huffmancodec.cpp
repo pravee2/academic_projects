@@ -261,15 +261,15 @@ for(i=0;i<fileSize-1;i++)
 		}
 	}
 }
-free(data_in);						//freeing sorted data post frequency and dictionary entry computation
+free(data_in);																								//freeing sorted data post frequency and dictionary entry computation
 Node temp;
 	
 /* Creating a vector of dictionary entries to be able to form a tree */
 for(i=0;i<k;i++)
 {
-	temp.freq = frequency[i];			//initialising leaf nodes with dictionary elements and frequencies
+	temp.freq = frequency[i];																				//initialising leaf nodes with dictionary elements and frequencies
 	temp.val = dictionary[i];
-	temp.left = NULL;				//setting left and right child to NULL for leaf nodes
+	temp.left = NULL;																						//setting left and right child to NULL for leaf nodes
 	temp.right = NULL;
 	dict.push_back(temp);	
 }
@@ -295,18 +295,18 @@ while(dict.size()>1)
 	lastmin = (Node*)malloc(1*sizeof(Node));
 //	memset(&temp,0,sizeof(Node));
 	sort(dict.begin(), dict.end(), sortCompare);
-	*minimum = dict[dict.size()-1];					//least frequency element
-	*lastmin = dict[dict.size()-2];					//second to least frequency element
+	*minimum = dict[dict.size()-1];																			//least frequency element
+	*lastmin = dict[dict.size()-2];																			//second to least frequency element
 //	std::cout << "frequencies popped : Min Freq"<< minimum->freq <<"\t"<< lastmin->freq<< std::endl;
 	dict.pop_back();
 	dict.pop_back();
 //	for(i=0;i<dict.size();i++)
 //		std::cout << "Dictionary Entry: "<< dict[i].val << "\t" << dict[i].freq<< std::endl;
 	temp.val = '\0';
-	temp.freq = (minimum->freq) + (lastmin->freq);			//creating a parent node with frequency = sum of lowest frequencies
-	temp.left = minimum;						//assigning left child
-	temp.right = lastmin;						//assigning right chld
-	dict.push_back(temp);						//pushing tree node to dictionary
+	temp.freq = (minimum->freq) + (lastmin->freq);															//creating a parent node with frequency = sum of lowest frequencies
+	temp.left = minimum;																					//assigning left child
+	temp.right = lastmin;																					//assigning right chld
+	dict.push_back(temp);																					//pushing tree node to dictionary
 	iter++;	
 //	free(minimum);
 //	free(lastmin);
@@ -315,7 +315,7 @@ while(dict.size()>1)
 //std::cout << "New dictionary root frequency= "<< dict[0].freq << "\t" <<std::endl;
 
 Node *root = (Node*)malloc(1*sizeof(Node));
-*root = dict[0];							//assigning root node of dictionary
+*root = dict[0];																							//assigning root node of dictionary
 Node *next, n2n;
 
 /* computing code for each element in the dictionary */
@@ -331,8 +331,8 @@ for(i=0; i<dictionary_count; i++)
 {
 	size[i] = 0;
 	pattern[i] = NULL;
-	codeDetect = getCode(dictionary[i], &size[i], pattern[i], root);	//traversing tree to obtain codes and code length for each symbol	
-	total_size += size[i]*frequency[i];					//total number of bits in compressed file 
+	codeDetect = getCode(dictionary[i], &size[i], pattern[i], root);										//traversing tree to obtain codes and code length for each symbol	
+	total_size += size[i]*frequency[i];																		//total number of bits in compressed file 
 }
 
 total_size += 8-total_size%8;
@@ -349,7 +349,7 @@ for(i=0;i<fileSize;i++)
 		if(data_stream[i] == dictionary[j])
 		{
 			for(l=0;l<size[j];l++)
-				outstream[stream_index+l] = pattern[j][l];	//output stream of bits
+				outstream[stream_index+l] = pattern[j][l];													//output stream of bits
 			stream_index += size[j];						
 		}
 	}		
