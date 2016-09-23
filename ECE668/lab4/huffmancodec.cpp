@@ -148,8 +148,6 @@ int NodeCount(Node *root)
 
 int main( int argc, char *argv[])
 {
-
-
 FILE 				*fpt_in, *fpt_out, *fpt_inter;
 int 				i,j,k;
 unsigned char 			*data_in, *data_stream;
@@ -214,8 +212,6 @@ for(i=0; i<fileSize-1; i++)
 	if(data_in[i] != data_in[i+1])
 	{
 		dictionary_count++;
-//		if(i==fileSize-2)
-//			dictionary_count++;
 	}
 
 
@@ -276,44 +272,31 @@ for(i=0;i<k;i++)
 
 std::cout << "Dictionary size: " << dict.size() << std::endl;
 
-//sort(dict.begin(),dict.end(), sortCompare);
-
+/*sort(dict.begin(),dict.end(), sortCompare);*/
 /*for(i=0; i< dict.size(); i++)
 	std::cout<< "Dictionary Element: " << dict[i].val <<"\t"<< dict[i].freq << std::endl;
 */
 
 Node *minimum, *lastmin;
-
-//minimum = (Node*)malloc(1*sizeof(Node));
 int iter = 1;
-//lastmin = (Node*)malloc(1*sizeof(Node));
 /* creating dictionary tree */
 while(dict.size()>1)
 {
-	
 	minimum = (Node*)malloc(1*sizeof(Node));
 	lastmin = (Node*)malloc(1*sizeof(Node));
-//	memset(&temp,0,sizeof(Node));
 	sort(dict.begin(), dict.end(), sortCompare);
 	*minimum = dict[dict.size()-1];																			//least frequency element
 	*lastmin = dict[dict.size()-2];																			//second to least frequency element
-//	std::cout << "frequencies popped : Min Freq"<< minimum->freq <<"\t"<< lastmin->freq<< std::endl;
 	dict.pop_back();
 	dict.pop_back();
-//	for(i=0;i<dict.size();i++)
-//		std::cout << "Dictionary Entry: "<< dict[i].val << "\t" << dict[i].freq<< std::endl;
 	temp.val = '\0';
 	temp.freq = (minimum->freq) + (lastmin->freq);															//creating a parent node with frequency = sum of lowest frequencies
 	temp.left = minimum;																					//assigning left child
 	temp.right = lastmin;																					//assigning right chld
 	dict.push_back(temp);																					//pushing tree node to dictionary
 	iter++;	
-//	free(minimum);
-//	free(lastmin);
 }
-
 //std::cout << "New dictionary root frequency= "<< dict[0].freq << "\t" <<std::endl;
-
 Node *root = (Node*)malloc(1*sizeof(Node));
 *root = dict[0];																							//assigning root node of dictionary
 Node *next, n2n;
@@ -336,7 +319,6 @@ for(i=0; i<dictionary_count; i++)
 }
 
 total_size += 8-total_size%8;
-
 //std::cout << "Total Size of output bit array: "<< total_size << std::endl;
 
 int *outstream = (int*)calloc(total_size,sizeof(int));
@@ -375,8 +357,6 @@ for(i=0;i<total_size/8;i++)
 }
 
 std::cout<< "Compression Concluded" << std::endl;
-
-
 fclose(fpt_out);
 fclose(fpt_in);
 free(dictionary);
