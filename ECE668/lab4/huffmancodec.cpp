@@ -111,11 +111,8 @@ bool getCode(unsigned char symbol,int* size, int* &pattern, Node *root)
 			if(!code)
 				(*size)--;
 			return code;
-
 		}		
 	}
-				
-
 }
 
 /* Pre order printing of tree elements */
@@ -140,7 +137,6 @@ int NodeCount(Node *root)
 		count += NodeCount(root->left);
 		count += NodeCount(root->right);	
 		return count;				
-
 	}
 }
 
