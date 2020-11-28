@@ -84,7 +84,7 @@ def entropy(arr):
     label_count = label_counts(arr)
     entropy = 0
     p = 0.0
-    for label in label_count.keys():
+    for label in list(label_count.keys()):
         p = float(label_count[label])/float(len(arr))
         entropy -= p*math.log(p,2)
     return entropy
@@ -262,7 +262,7 @@ class decision_tree(object):
             self.false.drawnode(draw,left+w1/2,y+100)
             self.true.drawnode(draw,right-w2/2,y+100)
         else:
-            txt='\n'.join(['%s:%d'%v for v in self.class_label.items()])
+            txt='\n'.join(['%s:%d'%v for v in list(self.class_label.items())])
             draw.text((x-20,y),txt,(0,0,255))
 
 	
@@ -291,9 +291,9 @@ class RandomForest(object):
             treeNode.build_tree(split_data[i])
             treeNode.drawtree(jpeg=("tree_{0}.png".format(i)))
             self.treeheads.append(treeNode)
-            print "Built tree",i,
-            print "Width: ", treeNode.width(),
-            print "Depth: ", treeNode.depth()
+            print("Built tree",i, end=' ')
+            print("Width: ", treeNode.width(), end=' ')
+            print("Depth: ", treeNode.depth())
 
 
     def classifyforest(self, data_point):
@@ -322,15 +322,15 @@ class RandomForest(object):
         '''
         labels = {}
         for i in range(self.numtree):
-            classLabel = self.treeheads[i].classifytree(data_point).keys()
+            classLabel = list(self.treeheads[i].classifytree(data_point).keys())
             # for debugging
             # print 'tree Out of :' , i, classLabel
-            if classLabel[0] not in labels.keys():
+            if classLabel[0] not in list(labels.keys()):
                 labels[classLabel[0]] = 0
             labels[classLabel[0]] += 1
         # assigning correct class output
         maxval=max(labels.values())
-        for key,values in labels.iteritems():
+        for key,values in labels.items():
             if values==maxval:
                 result=key
         return result
@@ -342,7 +342,7 @@ class TestDecisionTree(unittest.TestCase):
         ''' 
         This functon tests the constructor to initialise the decision tree root node
         '''
-        print "Testing constructor for decision tree"
+        print("Testing constructor for decision tree")
         tree = decision_tree()
         self.assertEqual(tree.feature_index , -1)
         self.assertEqual(tree.feature_value , None)
@@ -354,7 +354,7 @@ class TestDecisionTree(unittest.TestCase):
         ''' 
         This function tests the build_tree member function of the decision tree class
         '''
-        print "Testing build tree of decision tree"
+        print("Testing build tree of decision tree")
         my_data=[['slashdot','USA','yes',18,'None'],
              ['google','France','yes',23,'Premium'],
              ['digg','USA','yes',24,'Basic'],
@@ -388,7 +388,7 @@ class TestDecisionTree(unittest.TestCase):
         This function tests the classify function of the decision tree class
         for data points in the training set
         '''
-        print "Testing classify of decision tree"
+        print("Testing classify of decision tree")
         my_data=[['slashdot','USA','yes',18,'None'],
              ['google','France','yes',23,'Premium'],
              ['digg','USA','yes',24,'Basic'],
@@ -408,9 +408,9 @@ class TestDecisionTree(unittest.TestCase):
 
         tree = decision_tree()
         tree.build_tree(my_data)
-        self.assertEqual(tree.classifytree(['(direct)','USA','yes',5]).keys(),['Basic'])
-        self.assertEqual(tree.classifytree(['(direct)','USA','no',23]).keys(),['Basic'])
-        self.assertEqual(tree.classifytree(['slashdot','USA','yes',18]).keys(), ['None'])
+        self.assertEqual(list(tree.classifytree(['(direct)','USA','yes',5]).keys()),['Basic'])
+        self.assertEqual(list(tree.classifytree(['(direct)','USA','no',23]).keys()),['Basic'])
+        self.assertEqual(list(tree.classifytree(['slashdot','USA','yes',18]).keys()), ['None'])
 
 
 if __name__ == "__main__":
@@ -428,7 +428,7 @@ if __name__ == "__main__":
     testdata=fileio(testfile)
 
     # Invoking unit test for decision tree
-    print "Invoking test case for decision trees"
+    print("Invoking test case for decision trees")
     suite = unittest.TestLoader().loadTestsFromTestCase(TestDecisionTree)
     unittest.TextTestRunner().run(suite) 
 
@@ -439,20 +439,20 @@ if __name__ == "__main__":
 
     # Single decision tree for entire credit approval dataset
     tree_credit = decision_tree()
-    print 'Commencing single Decision Tree for credit approval data'
+    print('Commencing single Decision Tree for credit approval data')
     start_time = time.time()
     tree_credit.build_tree(data)
     end_time = time.time()
-    print 'time_lapsed', end_time - start_time
+    print('time_lapsed', end_time - start_time)
     tree_credit.drawtree(jpeg='singletree.png')
 
     # Random forest of decision trees for the credit approval dataset
-    print 'Commencing single Random Forest for credit approval data'
+    print('Commencing single Random Forest for credit approval data')
     forest=RandomForest(10)
     start_time = time.time()
     forest.build_forest(data)
     end_time = time.time()
-    print 'Time to build forest: ', end_time - start_time
+    print('Time to build forest: ', end_time - start_time)
 
     # Testing random forest created on test data points
     # print test_points
@@ -473,15 +473,15 @@ if __name__ == "__main__":
             else:
                 fncount += 1
 
-    print 'Displaying first 40 outputs:'
+    print('Displaying first 40 outputs:')
     for i in range(40):
         out=forest.classifyforest(test_points[i]) 
-        print "Forest Output",out,"Actual Output",testdata[i][len(testdata[i])-1] 
+        print("Forest Output",out,"Actual Output",testdata[i][len(testdata[i])-1]) 
 
-    print "Performance Metrics of the Random Forest:"
-    print 'accuracy:', float(tpcount+tncount)/float(len(test_points))
-    print 'recall:', float(tpcount)/float(tpcount+fncount)
-    print 'precison:', float(tpcount)/float(tpcount+fpcount)
+    print("Performance Metrics of the Random Forest:")
+    print('accuracy:', float(tpcount+tncount)/float(len(test_points)))
+    print('recall:', float(tpcount)/float(tpcount+fncount))
+    print('precison:', float(tpcount)/float(tpcount+fpcount))
     
   
 
