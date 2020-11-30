@@ -1,0 +1,9 @@
+{
+    "python.pythonPath": "/Users/varunpraveen/.virtualenvs/py3_recommender/bin/python",
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylintArgs": [
+        "--disable",
+        "logging-format-interpolation",
+        "--disable too-many-arguments"
+    ]
+}
